@@ -130,7 +130,7 @@ jobs:
 
       - name: Clone FreeRDP 3.x source
         run: |
-          git clone --depth 1 --branch 3.9.0 \
+          git clone --depth 1 --branch master \
             https://github.com/FreeRDP/FreeRDP.git vendor/FreeRDP
 
       - name: Cache cargo registry & build

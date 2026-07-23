@@ -80,8 +80,8 @@ fn build_vendored() -> PathBuf {
 
     cfg.define("BUILD_SHARED_LIBS", "OFF")
         .define("WITH_SERVER", "OFF")
-        .define("WITH_CLIENT", "ON")
-        .define("WITH_CHANNELS", "ON")
+        .define("WITH_CLIENT", "OFF")
+        .define("WITH_CHANNELS", "OFF")
         .define("WITH_WINPR_TOOLS", "OFF")
         .define("WITH_MANPAGES", "OFF")
         .define("BUILD_TESTING", "OFF")
