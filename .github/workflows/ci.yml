@@ -116,12 +116,15 @@ jobs:
             zlib1g-dev \
             libclang-dev \
             ninja-build \
-            pkg-config
+            pkg-config \
+            libjson-c-dev \
+            libcjson-dev \
+            libopus-dev
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install cmake openssl zlib llvm ninja pkg-config
+          brew install cmake openssl zlib llvm ninja pkg-config json-c cjson opus
           echo "LIBCLANG_PATH=$(brew --prefix llvm)/lib" >> $GITHUB_ENV
           echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl)" >> $GITHUB_ENV
 
