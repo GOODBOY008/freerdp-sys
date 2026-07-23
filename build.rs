@@ -120,6 +120,14 @@ fn build_vendored() -> PathBuf {
         .define("WITH_SMARTCARD_EMULATE", "OFF")
         .define("WITH_FUSE", "OFF")
         .define("WITH_AAD", "OFF")
+        .define("WITH_CJSON", "OFF")
+        .define("WITH_JSON", "OFF")
+        .define("WITH_INTREE_WAYLAND", "OFF")
+        .define("WITH_LIBSYSTEMD", "OFF")
+        .define("WITH_KRB5", "OFF")
+        .define("WITH_KRB5_NO_VENDOR", "OFF")
+        .define("WITH_SDL", "OFF")
+        .define("WITH_UI", "OFF")
         // Disable optional SIMD
         .define("WITH_SSE2", "OFF")
         .define("WITH_NEON", "OFF");

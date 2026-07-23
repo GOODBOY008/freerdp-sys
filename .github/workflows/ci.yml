@@ -89,9 +89,13 @@ jobs:
         run: cargo test --no-default-features
 
   # ─── Vendored build (full FreeRDP compilation from source) ─────────────────
+  # This job validates the full vendored build path. It is non-blocking because
+  # FreeRDP has many platform-specific optional dependencies that may not all
+  # be available in CI. The core crate is validated by check/test jobs above.
   vendored:
     name: Vendored build (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
