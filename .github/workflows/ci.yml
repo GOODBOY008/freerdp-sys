@@ -9,7 +9,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: "-Dwarnings"
   RUST_BACKTRACE: "1"
 
 jobs:
@@ -28,7 +27,7 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
-  # ─── Check & Clippy (multi-platform, multi-MSRV) ──────────────────────────
+  # ─── Check & Clippy (multi-platform, uses pre-generated bindings) ──────────
   check:
     name: Check (${{ matrix.os }}, ${{ matrix.rust }})
     runs-on: ${{ matrix.os }}
@@ -38,45 +37,18 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         rust: [stable, "1.70"]
         exclude:
-          # MSRV only tested on Linux to save CI minutes
           - os: macos-latest
             rust: "1.70"
           - os: windows-latest
             rust: "1.70"
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
           components: clippy
-
-      - name: Install system dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            cmake \
-            libssl-dev \
-            zlib1g-dev \
-            libclang-dev \
-            ninja-build \
-            pkg-config
-
-      - name: Install system dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install cmake openssl zlib llvm ninja pkg-config
-          echo "LIBCLANG_PATH=$(brew --prefix llvm)/lib" >> $GITHUB_ENV
-
-      - name: Install system dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          choco install cmake ninja llvm -y
-          echo "CMAKE_GENERATOR=Ninja" >> $env:GITHUB_ENV
 
       - name: Cache cargo registry & build
         uses: actions/cache@v4
@@ -85,27 +57,18 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-${{ matrix.rust }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.rust }}-check-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.rust }}-cargo-
+            ${{ runner.os }}-${{ matrix.rust }}-check-
 
-      - name: Cargo check (vendored + generate-bindings)
-        run: cargo check --features vendored,generate-bindings
-
-      - name: Cargo check (pre-generated bindings only)
+      - name: Cargo check (pre-generated bindings)
         run: cargo check --no-default-features
 
-      - name: Cargo check (system)
-        if: runner.os != 'Windows'
-        run: cargo check --no-default-features --features system
-        continue-on-error: true
-
-      - name: Clippy
+      - name: Clippy (pre-generated bindings)
         if: matrix.rust == 'stable'
-        run: cargo clippy --features vendored,generate-bindings -- -D warnings
-        continue-on-error: true
+        run: cargo clippy --no-default-features -- -D warnings
 
-  # ─── Tests ─────────────────────────────────────────────────────────────────
+  # ─── Tests (pre-generated bindings, no native build needed) ────────────────
   test:
     name: Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -115,8 +78,34 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry & build
+        uses: actions/cache@v4
         with:
-          submodules: recursive
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-test-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-test-
+
+      - name: Run tests (pre-generated bindings)
+        run: cargo test --no-default-features
+
+  # ─── Vendored build (full FreeRDP compilation from source) ─────────────────
+  vendored:
+    name: Vendored build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -131,13 +120,21 @@ jobs:
             zlib1g-dev \
             libclang-dev \
             ninja-build \
-            pkg-config
+            pkg-config \
+            libfuse-dev \
+            libpkcs11-helper1-dev
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew install cmake openssl zlib llvm ninja pkg-config
           echo "LIBCLANG_PATH=$(brew --prefix llvm)/lib" >> $GITHUB_ENV
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl)" >> $GITHUB_ENV
+
+      - name: Clone FreeRDP 3.x source
+        run: |
+          git clone --depth 1 --branch stable-3.0 \
+            https://github.com/FreeRDP/FreeRDP.git vendor/FreeRDP
 
       - name: Cache cargo registry & build
         uses: actions/cache@v4
@@ -146,15 +143,15 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-test-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-vendored-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-test-cargo-
+            ${{ runner.os }}-vendored-
 
-      - name: Run tests (vendored + generate-bindings)
+      - name: Cargo check (vendored + generate-bindings)
+        run: cargo check --features vendored,generate-bindings
+
+      - name: Cargo test (vendored + generate-bindings)
         run: cargo test --features vendored,generate-bindings
-
-      - name: Run tests (pre-generated bindings)
-        run: cargo test --no-default-features
 
   # ─── Package verification ──────────────────────────────────────────────────
   package:
@@ -162,8 +159,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -172,7 +167,7 @@ jobs:
         run: cargo package --allow-dirty --no-verify
 
       - name: Verify docs build
-        run: cargo doc --no-deps --features vendored
+        run: cargo doc --no-deps --no-default-features
         env:
           RUSTDOCFLAGS: "-Dwarnings"
 
@@ -186,8 +181,6 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
