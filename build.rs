@@ -128,6 +128,9 @@ fn build_vendored() -> PathBuf {
         .define("WITH_KRB5_NO_VENDOR", "OFF")
         .define("WITH_SDL", "OFF")
         .define("WITH_CLIENT_SDL", "OFF")
+        .define("WITH_CLIENT_MAC", "OFF")
+        .define("WITH_CLIENT_X11", "OFF")
+        .define("WITH_CLIENT_WAYLAND", "OFF")
         .define("WITH_UI", "OFF")
         // Disable optional SIMD
         .define("WITH_SSE2", "OFF")
