@@ -1,0 +1,69 @@
+name: Vendored Build
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Mondays at 06:00 UTC
+    - cron: "0 6 * * 1"
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+
+jobs:
+  vendored:
+    name: Vendored build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            libssl-dev \
+            zlib1g-dev \
+            libclang-dev \
+            ninja-build \
+            pkg-config \
+            libjson-c-dev \
+            libcjson-dev \
+            libopus-dev
+
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake openssl zlib llvm ninja pkg-config json-c cjson opus
+          echo "LIBCLANG_PATH=$(brew --prefix llvm)/lib" >> $GITHUB_ENV
+          echo "OPENSSL_ROOT_DIR=$(brew --prefix openssl)" >> $GITHUB_ENV
+
+      - name: Clone FreeRDP 3.x source
+        run: |
+          git clone --depth 1 --branch master \
+            https://github.com/FreeRDP/FreeRDP.git vendor/FreeRDP
+
+      - name: Cache cargo registry & build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-vendored-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-vendored-
+
+      - name: Cargo check (vendored + generate-bindings)
+        run: cargo check --features vendored,generate-bindings
+
+      - name: Cargo test (vendored + generate-bindings)
+        run: cargo test --features vendored,generate-bindings
