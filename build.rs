@@ -90,19 +90,39 @@ fn build_vendored() -> PathBuf {
         .define("WITH_PROXY", "OFF")
         .define("WITH_SHADOW", "OFF")
         .define("WITH_PLATFORM_SERVER", "OFF")
-        .define("CMAKE_BUILD_TYPE", "Release");
-
-    // Platform-specific configuration
-    match target_os.as_str() {
-        "macos" => {
-            cfg.define("WITH_MACAUDIO", "ON");
-        }
-        "linux" => {
-            cfg.define("WITH_ALSA", "OFF");
-            cfg.define("WITH_PULSE", "OFF");
-        }
-        _ => {}
-    }
+        .define("CMAKE_BUILD_TYPE", "Release")
+        // Disable all optional display/audio backends
+        .define("WITH_X11", "OFF")
+        .define("WITH_WAYLAND", "OFF")
+        .define("WITH_ALSA", "OFF")
+        .define("WITH_PULSE", "OFF")
+        .define("WITH_OSS", "OFF")
+        .define("WITH_SNDIO", "OFF")
+        .define("WITH_OPUS", "OFF")
+        .define("WITH_FAAC", "OFF")
+        .define("WITH_FAAD2", "OFF")
+        .define("WITH_LAME", "OFF")
+        .define("WITH_SOXR", "OFF")
+        .define("WITH_GSM", "OFF")
+        // Disable optional codec/media support
+        .define("WITH_FFMPEG", "OFF")
+        .define("WITH_DSP_FFMPEG", "OFF")
+        .define("WITH_OPENH264", "OFF")
+        .define("WITH_MEDIA_FOUNDATION", "OFF")
+        .define("WITH_SWSCALE", "OFF")
+        .define("WITH_CAIRO", "OFF")
+        .define("WITH_JPEG", "OFF")
+        .define("WITH_WEBP", "OFF")
+        .define("WITH_PNG", "OFF")
+        // Disable optional hardware/smartcard
+        .define("WITH_PCSC", "OFF")
+        .define("WITH_PKCS11", "OFF")
+        .define("WITH_SMARTCARD_EMULATE", "OFF")
+        .define("WITH_FUSE", "OFF")
+        .define("WITH_AAD", "OFF")
+        // Disable optional SIMD
+        .define("WITH_SSE2", "OFF")
+        .define("WITH_NEON", "OFF");
 
     // Allow user overrides via environment
     if let Ok(extra_defs) = env::var("FREERDP_CMAKE_DEFS") {

@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/freerdp-sys.svg)](https://crates.io/crates/freerdp-sys)
 [![Docs.rs](https://docs.rs/freerdp-sys/badge.svg)](https://docs.rs/freerdp-sys)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
-[![MSRV](https://img.shields.io/badge/rustc-1.71+-orange.svg)](#requirements)
+[![MSRV](https://img.shields.io/badge/rustc-1.77+-orange.svg)](#requirements)
 
 Low-level Rust FFI bindings to [FreeRDP 3.x](https://github.com/FreeRDP/FreeRDP) — a free,
 open-source implementation of the Remote Desktop Protocol (RDP).
@@ -72,7 +72,7 @@ freerdp-sys = { version = "0.1", features = ["generate-bindings"] }
 | C compiler | C11 | gcc, clang, or MSVC |
 | OpenSSL | 1.1.1+ | TLS/crypto support |
 | zlib | 1.2+ | Compression |
-| Rust | 1.71+ | Crate MSRV |
+| Rust | 1.77+ | Crate MSRV |
 
 **Platform-specific:**
 

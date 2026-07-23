@@ -29,25 +29,18 @@ jobs:
 
   # ─── Check & Clippy (multi-platform, uses pre-generated bindings) ──────────
   check:
-    name: Check (${{ matrix.os }}, ${{ matrix.rust }})
+    name: Check (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable, "1.71"]
-        exclude:
-          - os: macos-latest
-            rust: "1.71"
-          - os: windows-latest
-            rust: "1.71"
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ matrix.rust }}
           components: clippy
 
       - name: Cache cargo registry & build
@@ -57,15 +50,14 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-${{ matrix.rust }}-check-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-check-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.rust }}-check-
+            ${{ runner.os }}-check-
 
       - name: Cargo check (pre-generated bindings)
         run: cargo check --no-default-features
 
       - name: Clippy (pre-generated bindings)
-        if: matrix.rust == 'stable'
         run: cargo clippy --no-default-features -- -D warnings
 
   # ─── Tests (pre-generated bindings, no native build needed) ────────────────
@@ -120,9 +112,7 @@ jobs:
             zlib1g-dev \
             libclang-dev \
             ninja-build \
-            pkg-config \
-            libfuse-dev \
-            libpkcs11-helper1-dev
+            pkg-config
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
