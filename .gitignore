@@ -1,0 +1,38 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# Cargo.lock — committed for reproducible CI (uncomment to exclude)
+# Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+\#*#
+.#*
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# CMake build directories (local testing)
+/build/
+/cmake-build-*/
+
+# Generated artifacts (should not be committed unless intentional)
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.pdb
+
+# Environment
+.env
+.env.local

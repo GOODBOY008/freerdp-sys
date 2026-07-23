@@ -1,0 +1,46 @@
+[package]
+name = "freerdp-sys"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+authors = ["FreeRDP Rust Bindings Contributors"]
+description = "Low-level Rust FFI bindings to FreeRDP 3.x (Remote Desktop Protocol). Supports vendored CMake builds from source or linking against system-installed FreeRDP. Bindings generated via bindgen. General-purpose — usable by any Rust project needing RDP client/server functionality."
+documentation = "https://docs.rs/freerdp-sys"
+repository = "https://github.com/GOODBOY008/freerdp-sys"
+homepage = "https://github.com/GOODBOY008/freerdp-sys"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+keywords = ["freerdp", "rdp", "ffi", "bindings", "remote-desktop"]
+categories = ["external-ffi-bindings", "network-programming"]
+links = "freerdp"
+build = "build.rs"
+include = [
+    "src/**/*",
+    "build.rs",
+    "cmake/**/*",
+    "vendor/**/*",
+    "Cargo.toml",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+]
+
+[features]
+default = ["vendored"]
+## Build FreeRDP from vendored source via CMake (requires CMake >= 3.13, C compiler)
+vendored = []
+## Link against a system-installed FreeRDP 3.x (pkg-config discovery)
+system = []
+## Generate bindings at build time (requires libclang). When disabled, pre-generated bindings are used.
+generate-bindings = []
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.71"
+cmake = "0.1"
+pkg-config = "0.3"
+
+[package.metadata.docs.rs]
+features = ["generate-bindings"]
+rustc-args = ["--cfg", "docsrs"]
