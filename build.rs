@@ -250,6 +250,22 @@ fn generate_bindings(include_path: &Path) {
         }
     }
 
+    // Add CMake build output directory (contains generated config.h etc.)
+    if let Ok(out_dir) = env::var("OUT_DIR") {
+        let out_path = PathBuf::from(&out_dir);
+        let build_dir = out_path.join("build");
+        if build_dir.exists() {
+            builder = builder.clang_arg(format!("-I{}", build_dir.display()));
+            // Also add subdirectories that may contain generated headers
+            for sub in ["winpr", "libfreerdp", "include"] {
+                let sub_path = build_dir.join(sub);
+                if sub_path.exists() {
+                    builder = builder.clang_arg(format!("-I{}", sub_path.display()));
+                }
+            }
+        }
+    }
+
     let mut builder = builder
         // Allowlist FreeRDP and WinPR symbols
         .allowlist_function("freerdp_.*")
