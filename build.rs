@@ -165,8 +165,23 @@ fn build_vendored() -> PathBuf {
     // Platform system libraries that FreeRDP depends on
     emit_system_libs(&target_os);
 
-    // Return include path for bindgen
-    dst.join("include").join("freerdp3")
+    // Return include path for bindgen — search common FreeRDP header locations
+    let include_base = dst.join("include");
+    let candidates = [
+        include_base.join("freerdp3"),
+        include_base.join("FreeRDP3"),
+        include_base.join("freerdp"),
+        include_base.clone(),
+    ];
+    for candidate in &candidates {
+        if candidate.join("winpr").join("winpr.h").exists()
+            || candidate.join("freerdp").join("freerdp.h").exists()
+        {
+            return candidate.clone();
+        }
+    }
+    // Fallback: return the base include dir
+    include_base
 }
 
 /// Find system-installed FreeRDP via pkg-config.
@@ -205,7 +220,8 @@ fn find_system() -> PathBuf {
 
 /// Run bindgen to produce Rust FFI bindings from FreeRDP headers.
 fn generate_bindings(include_path: &Path) {
-    let wrapper = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("src/wrapper.h");
+    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let wrapper = manifest_dir.join("src/wrapper.h");
 
     println!("cargo:rerun-if-changed={}", wrapper.display());
 
@@ -219,7 +235,22 @@ fn generate_bindings(include_path: &Path) {
                 .parent()
                 .map(|p| p.display().to_string())
                 .unwrap_or_default()
-        ))
+        ));
+
+    // Add vendored source include paths as fallback
+    let vendor_dir = manifest_dir.join("vendor/FreeRDP");
+    let vendor_includes = [
+        vendor_dir.join("include"),
+        vendor_dir.join("winpr/include"),
+        vendor_dir.join("libfreerdp"),
+    ];
+    for inc in &vendor_includes {
+        if inc.exists() {
+            builder = builder.clang_arg(format!("-I{}", inc.display()));
+        }
+    }
+
+    let mut builder = builder
         // Allowlist FreeRDP and WinPR symbols
         .allowlist_function("freerdp_.*")
         .allowlist_function("rdp_.*")
