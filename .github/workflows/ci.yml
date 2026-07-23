@@ -35,12 +35,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable, "1.70"]
+        rust: [stable, "1.71"]
         exclude:
           - os: macos-latest
-            rust: "1.70"
+            rust: "1.71"
           - os: windows-latest
-            rust: "1.70"
+            rust: "1.71"
     steps:
       - uses: actions/checkout@v4
 
@@ -133,7 +133,7 @@ jobs:
 
       - name: Clone FreeRDP 3.x source
         run: |
-          git clone --depth 1 --branch stable-3.0 \
+          git clone --depth 1 --branch 3.9.0 \
             https://github.com/FreeRDP/FreeRDP.git vendor/FreeRDP
 
       - name: Cache cargo registry & build

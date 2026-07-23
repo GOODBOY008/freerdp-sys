@@ -2,7 +2,7 @@
 name = "freerdp-sys"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.71"
 authors = ["FreeRDP Rust Bindings Contributors"]
 description = "Low-level Rust FFI bindings to FreeRDP 3.x (Remote Desktop Protocol). Supports vendored CMake builds from source or linking against system-installed FreeRDP. Bindings generated via bindgen. General-purpose — usable by any Rust project needing RDP client/server functionality."
 documentation = "https://docs.rs/freerdp-sys"

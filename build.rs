@@ -16,7 +16,11 @@ use std::path::{Path, PathBuf};
 
 /// Check if a cargo feature is enabled (build scripts use env vars, not cfg!).
 fn has_feature(name: &str) -> bool {
-    env::var(format!("CARGO_FEATURE_{}", name.to_uppercase().replace('-', "_"))).is_ok()
+    env::var(format!(
+        "CARGO_FEATURE_{}",
+        name.to_uppercase().replace('-', "_")
+    ))
+    .is_ok()
 }
 
 fn main() {
@@ -154,7 +158,11 @@ fn find_system() -> PathBuf {
     let _ = pkg_config::Config::new()
         .atleast_version("3.0")
         .probe("winpr3")
-        .or_else(|_| pkg_config::Config::new().atleast_version("3.0").probe("winpr"));
+        .or_else(|_| {
+            pkg_config::Config::new()
+                .atleast_version("3.0")
+                .probe("winpr")
+        });
 
     freerdp
         .include_paths
